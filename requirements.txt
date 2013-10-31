@@ -1,0 +1,8 @@
+flask
+flask-migrate
+flask-script
+flask-httpauth
+flask-sqlalchemy
+validate_email
+ipaddress
+
