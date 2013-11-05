@@ -1,3 +1,5 @@
+import base64
+
 from flask.ext.testing import TestCase
 from app.models import User
 from app.exts import db
@@ -17,12 +19,13 @@ class BaseCase(TestCase):
 
     def setUp(self):
         db.create_all()
-        user = User(email=EXISTING_USER_EMAIL,password=EXISTING_USER_PASS)
+        user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
         db.session.add(user)
         db.session.commit()
 
     def tearDown(self):
         db.drop_all()
 
-    def test_auch(self):
-        self.assertEqual(True, True)
+    def _gen_auth_headers(self, email, password):
+        return ('Authorization', 'Basic ' + base64.b64encode('{}:{}'.format(
+                    email, password)))

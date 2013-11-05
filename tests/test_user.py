@@ -1,7 +1,7 @@
 import re
 from app.exts import mail
 from app.models import User
-from tests import BaseCase
+from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS
 
 USER_MAIL = 'foo@bar.de'
 USER_PASS = 'foobar'
@@ -39,10 +39,18 @@ class TestUser(BaseCase):
 
     def test_existing_email_registration(self):
             response = self.client.post('/user', data=dict(
-                email='test@test.de',
-                password='test123'
+                email=EXISTING_USER_EMAIL,
+                password=USER_PASS
                 )
             )
             self.assert400(response)
             self.assertEqual(response.json, dict(message='email already exists'))
 
+    def test_delete_user(self):
+            self.assertEqual(1, User.query.count())
+
+            auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+            response = self.client.delete('/user', headers = [auth])
+
+            self.assert200(response)
+            self.assertEqual(0, User.query.count())
