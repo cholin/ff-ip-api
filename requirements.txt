@@ -3,6 +3,7 @@ flask-migrate
 flask-script
 flask-httpauth
 flask-sqlalchemy
+flask-testing
 validate_email
 ipaddress
 

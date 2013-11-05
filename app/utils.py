@@ -1,5 +1,10 @@
+import string
+
 from ipaddress import ip_network
 from hashlib import sha256
+from random import choice
+from functools import wraps
+from flask import request, abort
 
 def get_factors_by(factor, num):
     amount_num_factors = 0
@@ -16,3 +21,17 @@ def hash_password(salt, password):
 
 def gen_network( address, prefixlen):
     return ip_network(u'{}/{}'.format(address, prefixlen))
+
+def gen_random_hash(length):
+    digits = string.ascii_letters + string.digits
+    return ''.join(choice(digits) for x in range(length))
+
+def requires_auth(f):
+    from models import User
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not User.auth(auth.username, auth.password):
+            abort(401)
+        return f(*args, **kwargs)
+    return decorated

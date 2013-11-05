@@ -1,0 +1,8 @@
+ Hey {{name}},
+
+you (or someone else) registered yourself for {{domain}}.
+To verify your email, you have to visit the following website:
+
+  {{url}}
+
+Greetings

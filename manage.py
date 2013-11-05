@@ -1,4 +1,20 @@
-from app import manager, models
+from flask.ext.script import Manager
+from flask.ext.migrate import MigrateCommand
+from app import create_app
+from app.exts import db
 
-manager.run()
+app = create_app()
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
+
+
+@manager.command
+def initdb():
+    db.drop_all()
+    db.create_all()
+
+if __name__ == '__main__':
+    manager.run()
+
 

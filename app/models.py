@@ -1,9 +1,10 @@
-from flask import g, url_for
+from flask import g, url_for, current_app
 from ipaddress import ip_address
 from sqlalchemy.orm import validates, reconstructor
 from validate_email import validate_email
-from utils import get_prefix_len, hash_password, gen_network
-from app import db, SALT
+from itsdangerous import URLSafeTimedSerializer
+from utils import get_prefix_len, hash_password, gen_network, gen_random_hash
+from .exts import db
 
 class PasswordTooShortError(ValueError):
     pass
@@ -12,8 +13,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     email = db.Column(db.String(128), nullable = False, unique = True)
     password_hash = db.Column(db.String(128), nullable = False)
+    token  = db.Column(db.String(128))
     networks = db.relationship('Network', backref='owner', lazy='dynamic',
                                cascade='all')
+    verified = db.Column(db.Boolean, default = False)
 
     def __init__(self, email, password):
         self.email = email
@@ -26,20 +29,45 @@ class User(db.Model):
     @password.setter
     def password(self, password):
         if len(password) < 6:
-            from errors import PasswordTooShortError
             raise PasswordTooShortError
 
-        self.password_hash = hash_password(SALT, password)
+        salt = current_app.config['SALT']
+        self.password_hash = hash_password(salt, password)
+        self.token = gen_random_hash(32)
 
     @staticmethod
     def auth(email, password):
-        hashed_pass = hash_password(SALT, password)
+        salt = current_app.config['SALT']
+        hashed_pass = hash_password(salt, password)
         try:
             qry = User.query.filter_by(email = email, password_hash=hashed_pass)
             g.user = qry.one()
             return True
         except:
             return False
+
+    def verify_signed_token(self, signed_token, namespace, timeout = 3600):
+        secret = current_app.config['SECRET']
+        serializer = URLSafeTimedSerializer(secret, namespace)
+        return self.token == serializer.loads(signed_token, max_age=timeout)
+
+    def gen_signed_token(self, namespace):
+        secret = current_app.config['SECRET']
+        serializer = URLSafeTimedSerializer(secret, namespace)
+        return serializer.dumps(self.token)
+
+    @property
+    def verify_namespace(self):
+        return 'lost_password' if self.verified else 'registration'
+
+    @property
+    def verify_url(self):
+        return url_for('api.user_verify', email = self.email,
+                  token = self.gen_signed_token(self.verify_namespace),
+                  _external=True)
+    @property
+    def name(self):
+        return self.email[:self.email.index('@')]
 
     @validates('email')
     def validate_email(self, key, email):
@@ -62,6 +90,7 @@ class Network(db.Model):
     address_packed = db.Column(db.BigInteger, nullable = False)
     num_addresses = db.Column(db.Integer, nullable = False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    pinged_at = db.Column(db.DateTime())
 
     def __init__(self, address, prefixlen, owner):
         self.network = gen_network(address, prefixlen)
@@ -121,7 +150,7 @@ class Network(db.Model):
             data['owner'] = self.owner.email
 
         if compact:
-            data['url'] = url_for('ips', address=self.network_address,
+            data['url'] = url_for('api.ips', address=self.network_address,
                               prefixlen=self.prefixlen, _external=True)
             return data
 

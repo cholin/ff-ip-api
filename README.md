@@ -3,6 +3,7 @@ ip.berlin.freifunk.net API
 
 RESTful API for ip.berlin.freifunk.net
 
+Install
 
     $ virtualenv2 env
     $ . env/bin/activate
@@ -10,7 +11,24 @@ RESTful API for ip.berlin.freifunk.net
     $ python manage.py db init
     $ python manage.py db migrate
     $ python manage.py db upgrade
+
+
+Dev Server
+
+    $ python -m smtpd -n -c DebuggingServer localhost:1025
     $ python manage.py runserver
+     * Running on http://127.0.0.1:5000/
+     * Restarting with reloader
+
+
+Tests
+
+    $ nosetests
+    ......
+    ----------------------------------------------------------------------
+    Ran 6 tests in 0.389s
+
+
 
 
 User
