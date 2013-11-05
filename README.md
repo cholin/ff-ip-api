@@ -13,7 +13,7 @@ Install
     $ python manage.py db upgrade
 
 
-Dev Server
+Dev Server (including dev smtp server for emails)
 
     $ python -m smtpd -n -c DebuggingServer localhost:1025
     $ python manage.py runserver
