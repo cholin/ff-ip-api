@@ -37,7 +37,7 @@ class TestUser(BaseCase):
             user = User.query.filter_by(email=USER_MAIL).one()
             self.assertTrue(user.verified)
 
-    def test_existing_email_registration(self):
+    def test_create_user_with_existing_email(self):
             response = self.client.post('/user', data=dict(
                 email=EXISTING_USER_EMAIL,
                 password=USER_PASS
