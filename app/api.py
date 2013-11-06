@@ -3,11 +3,12 @@
 from flask import Blueprint, jsonify, abort, request, g, render_template
 from flask.views import MethodView
 from flask.ext.mail import Message
-from models import User, Network, PasswordTooShortError
 from itsdangerous import BadTimeSignature
-from utils import gen_random_hash, requires_auth
-from .exts import db, mail
 from sqlalchemy.exc import IntegrityError
+from socket import error as socket_error
+from utils import gen_random_hash, requires_auth
+from models import User, Network, PasswordTooShortError
+from .exts import db, mail
 
 api = Blueprint('api', __name__)
 
@@ -19,8 +20,6 @@ class UserAPI(MethodView):
     def post(self):
         try:
             user = User(request.form['email'], request.form['password'])
-            db.session.add(user)
-            db.session.commit()
             body = render_template('registration_confirmation.txt',
                 name = user.name,
                 url = user.verify_url,
@@ -32,6 +31,8 @@ class UserAPI(MethodView):
                       recipients=[user.email],
                       body = body)
             mail.send(msg)
+            db.session.add(user)
+            db.session.commit()
             return jsonify(message='success')
         except AssertionError:
             error = 'email validation error'
@@ -39,6 +40,8 @@ class UserAPI(MethodView):
             error = 'email already exists'
         except PasswordTooShortError:
             error = 'Password too short'
+        except socket_error:
+            abort(500)
 
         db.session.rollback()
         return jsonify( { 'message': error } ), 400
@@ -64,7 +67,7 @@ class UserAPI(MethodView):
 
 @api.route('/users/<string:email>/lost_password')
 def user_lost_password(email):
-    user = User.query.filter_by(email=email).one()
+    user = User.query.filter_by(email=email).first_or_404()
     body = render_template('lost_password_request.txt',
               name = user.name, domain = 'ip.berlin.freifunk.net',
               url = user.verify_url)
@@ -112,7 +115,7 @@ class NetworkAPI(MethodView):
         if address is None and prefixlen is None:
             networks = Network.query.all()
             return jsonify(networks=map(lambda n: n.as_dict(), networks))
-        network = Network.overlaps_with(address).one()
+        network = Network.overlaps_with(address).first_or_404()
         return jsonify(network=network.as_dict(compact=False))
 
     def post(self):
@@ -134,7 +137,7 @@ class NetworkAPI(MethodView):
         return jsonify(message='success')
 
     def put(self, address, prefixlen):
-        network = Network.find(address, prefixlen).one()
+        network = Network.find(address, prefixlen).first_or_404()
 
         if 'address' in request.form:
             network.network_address = request.form['address']
@@ -147,7 +150,7 @@ class NetworkAPI(MethodView):
         return jsonify(message='success')
 
     def delete(self, address, prefixlen):
-        network = Network.find(address, prefixlen).one()
+        network = Network.find(address, prefixlen).first_or_404()
         if network.owner != g.user:
             abort(401)
 
