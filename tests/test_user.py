@@ -38,19 +38,25 @@ class TestUser(BaseCase):
             self.assertTrue(user.verified)
 
     def test_create_user_with_existing_email(self):
-            response = self.client.post('/user', data=dict(
-                email=EXISTING_USER_EMAIL,
-                password=USER_PASS
-                )
+        response = self.client.post('/user', data=dict(
+            email=EXISTING_USER_EMAIL,
+            password=USER_PASS
             )
-            self.assert400(response)
-            self.assertEqual(response.json, dict(message='email already exists'))
+        )
+        self.assert400(response)
+        self.assertEqual(response.json, dict(message='email already exists'))
+
+    def test_list_user(self):
+        auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        response = self.client.get('/user', headers = [auth])
+        self.assertDictContainsSubset(dict(email=EXISTING_USER_EMAIL),
+            response.json['user'])
 
     def test_delete_user(self):
-            self.assertEqual(1, User.query.count())
+        self.assertEqual(1, User.query.count())
 
-            auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-            response = self.client.delete('/user', headers = [auth])
+        auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        response = self.client.delete('/user', headers = [auth])
 
-            self.assert200(response)
-            self.assertEqual(0, User.query.count())
+        self.assert200(response)
+        self.assertEqual(0, User.query.count())
