@@ -1,12 +1,14 @@
 import base64
 
 from flask.ext.testing import TestCase
-from app.models import User
+from app.models import User, Network
 from app.exts import db
 from app import create_app
 
 EXISTING_USER_EMAIL = u'test@test.de'
 EXISTING_USER_PASS = u'test123'
+EXISTING_NETWORK_ADDRESS='192.168.0.0'
+EXISTING_NETWORK_PREFIXLEN=26
 
 class BaseCase(TestCase):
 
@@ -19,8 +21,12 @@ class BaseCase(TestCase):
 
     def setUp(self):
         db.create_all()
+
         user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        network = Network(EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN,
+            user)
         db.session.add(user)
+        db.session.add(network)
         db.session.commit()
 
     def tearDown(self):
