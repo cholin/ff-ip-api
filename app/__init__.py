@@ -46,7 +46,7 @@ def configure_extensions(app):
 def configure_error_handlers(app):
     @app.errorhandler(400)
     def bad_request(e):
-        return make_response(jsonify( { 'message': 'bad request' } ), 404)
+        return make_response(jsonify( { 'message': 'bad request' } ), 400)
 
     @app.errorhandler(401)
     def unauthorized(e):
