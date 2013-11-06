@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
+import re
 
 from flask.ext.testing import TestCase
 from app.models import User, Network
@@ -25,6 +26,7 @@ class BaseCase(TestCase):
         db.create_all()
 
         user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        user.verified = True
         network = Network(EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN,
             user)
         db.session.add(user)
@@ -33,6 +35,9 @@ class BaseCase(TestCase):
 
     def tearDown(self):
         db.drop_all()
+
+    def _extract_url(self, msg):
+        return re.search("(?P<url>https?://[^\s]+)", msg).group("url")
 
     def _gen_auth_headers(self, email, password):
         return ('Authorization', 'Basic ' + base64.b64encode('{}:{}'.format(

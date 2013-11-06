@@ -33,14 +33,12 @@ class User(db.Model):
         if len(password) < 6:
             raise PasswordTooShortError
 
-        salt = current_app.config['SALT']
-        self.password_hash = hash_password(salt, password)
+        self.password_hash = hash_password(current_app.config['SALT'], password)
         self.token = gen_random_hash(32)
 
     @staticmethod
     def auth(email, password):
-        salt = current_app.config['SALT']
-        hashed_pass = hash_password(salt, password)
+        hashed_pass = hash_password(current_app.config['SALT'], password)
         try:
             qry = User.query.filter_by(email = email, password_hash=hashed_pass)
             g.user = qry.one()

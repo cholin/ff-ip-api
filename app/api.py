@@ -65,7 +65,7 @@ class UserAPI(MethodView):
 @api.route('/users/<string:email>/lost_password')
 def user_lost_password(email):
     user = User.query.filter_by(email=email).one()
-    body = render_template('lost_password.txt',
+    body = render_template('lost_password_request.txt',
               name = user.name, domain = 'ip.berlin.freifunk.net',
               url = user.verify_url)
 
@@ -74,7 +74,8 @@ def user_lost_password(email):
               recipients=[user.email],
               body = body)
     mail.send(msg)
-    return jsonify(message='success')
+    return jsonify(
+        message='A confirmation mail has been sent to {}'.format(user.email))
 
 
 @api.route('/users/<string:email>/verify/<string:token>')
@@ -87,11 +88,11 @@ def user_verify(email, token):
             else:
                 new_password = gen_random_hash(32)
                 user.password = new_password
-                body = render_template('new_password',
+                body = render_template('new_password.txt',
                   name = user.name, domain = 'ip.berlin.freifunk.net',
                   new_password = new_password)
 
-                msg = Message("Your confirmation is needed!",
+                msg = Message("Your new password!",
                           sender="no-reply@ip.berlin.freifunk.net",
                           recipients=[user.email],
                           body = body)

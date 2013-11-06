@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import urllib2
 from app.exts import mail
 from app.models import User
 from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS
@@ -32,8 +32,7 @@ class TestUser(BaseCase):
             self.assertEqual(len(outbox), 1)
             self.assertEqual(outbox[0].subject, 'Your confirmation is needed!')
 
-            url = re.search("(?P<url>https?://[^\s]+)", outbox[0].body).group("url")
-            response = self.client.get(url)
+            response = self.client.get(self._extract_url(outbox[0].body))
             self.assertEqual(response.json, dict(message='success'))
 
             user = User.query.filter_by(email=USER_MAIL).one()
@@ -47,6 +46,24 @@ class TestUser(BaseCase):
         )
         self.assert400(response)
         self.assertEqual(response.json, dict(message='email already exists'))
+
+    def test_reset_password(self):
+        with mail.record_messages() as outbox:
+            email = urllib2.quote(EXISTING_USER_EMAIL)
+            response = self.client.get('/users/{}/lost_password'.format(email))
+            self.assert200(response)
+            self.assertEqual(response.json, dict(
+              message='A confirmation mail has been sent to {}'\
+              .format(EXISTING_USER_EMAIL)))
+
+            self.assertEqual(len(outbox), 1)
+            self.assertEqual(outbox[0].subject, 'Your confirmation is needed!')
+
+            response = self.client.get(self._extract_url(outbox[0].body))
+            self.assertEqual(response.json, dict(message='success'))
+            self.assertEqual(len(outbox), 2)
+            self.assertEqual(outbox[1].subject, 'Your new password!')
+            self.assertFalse(User.auth(EXISTING_USER_EMAIL, EXISTING_USER_PASS))
 
     def test_list_user(self):
         auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
