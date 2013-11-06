@@ -53,14 +53,14 @@ Get account information
       "user": {
         "email": "foo@bar.de",
         "id": 1,
-        "ips": [
+        "networks": [
           {
             "network": "104.0.0.0/28",
-            "url": "http://localhost:5000/ips/104.0.0.0/28"
+            "url": "http://localhost:5000/networks/104.0.0.0/28"
           },
           {
             "network": "192.168.0.0/26",
-            "url": "http://localhost:5000/ips/192.168.0.0/26"
+            "url": "http://localhost:5000/networks/192.168.0.0/26"
           }
         ]
       }
@@ -80,7 +80,7 @@ Networks
 
 Register new network
 
-    $ curl -u foo@bar.de:foobar --data "address=104.0.0.0&prefixlen=28" http://localhost:5000/ips
+    $ curl -u foo@bar.de:foobar --data "address=104.0.0.0&prefixlen=28" http://localhost:5000/networks
     {
       "message": "success"
     }
@@ -88,7 +88,7 @@ Register new network
 
 Get information about a network
 
-    $ curl -u foo@bar.de:foobar http://localhost:5000/ips/104.0.0.0/28
+    $ curl -u foo@bar.de:foobar http://localhost:5000/networks/104.0.0.0/28
     {
       "network": {
         "address": "104.0.0.0",
@@ -119,23 +119,23 @@ Get information about a network
 
 Get network for a specific ip address
 
-    $ curl -u foo@bar.de:foobar http://localhost:5000/ips/104.0.0.1
+    $ curl -u foo@bar.de:foobar http://localhost:5000/networks/104.0.0.1
 
 
 List all registered networks
 
-    $ curl -u foo@bar.de:foobar http://localhost:5000/ips
+    $ curl -u foo@bar.de:foobar http://localhost:5000/networks
     {
       "networks": [
         {
           "network": "104.0.0.0/28",
           "owner": "foo@bar.de",
-          "url": "http://localhost:5000/ips/104.0.0.0/28"
+          "url": "http://localhost:5000/networks/104.0.0.0/28"
         },
         {
           "network": "192.168.0.0/26",
           "owner": "foo@bar.de",
-          "url": "http://localhost:5000/ips/192.168.0.0/26"
+          "url": "http://localhost:5000/networks/192.168.0.0/26"
         }
       ]
     }
@@ -143,4 +143,4 @@ List all registered networks
 
 Remove a network
 
-    $ curl -X DELETE -u foo@bar.de:foobar http://localhost:5000/ips/104.0.0.0/28
+    $ curl -X DELETE -u foo@bar.de:foobar http://localhost:5000/networks/104.0.0.0/28

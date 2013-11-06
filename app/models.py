@@ -78,7 +78,7 @@ class User(db.Model):
         return {
           'id' : self.id,
           'email' : self.email,
-          'ips' : map(lambda n: n.as_dict(exclude_owner=True), self.networks)
+          'networks' : map(lambda n: n.as_dict(exclude_owner=True), self.networks)
         }
 
     def __repr__(self):
@@ -150,7 +150,7 @@ class Network(db.Model):
             data['owner'] = self.owner.email
 
         if compact:
-            data['url'] = url_for('api.ips', address=self.network_address,
+            data['url'] = url_for('api.networks', address=self.network_address,
                               prefixlen=self.prefixlen, _external=True)
             return data
 

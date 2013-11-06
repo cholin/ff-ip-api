@@ -162,11 +162,11 @@ class NetworkAPI(MethodView):
 user_view = UserAPI.as_view('user')
 api.add_url_rule('/user', view_func=user_view, methods=['GET', 'POST', 'PUT', 'DELETE'])
 
-network_view = requires_auth(NetworkAPI.as_view('ips'))
-api.add_url_rule('/ips', defaults={'address': None, 'prefixlen': None},
+network_view = requires_auth(NetworkAPI.as_view('networks'))
+api.add_url_rule('/networks', defaults={'address': None, 'prefixlen': None},
                          view_func=network_view, methods=['GET',])
-api.add_url_rule('/ips', view_func=network_view, methods=['POST',])
-api.add_url_rule('/ips/<string:address>', view_func=network_view)
-api.add_url_rule('/ips/<string:address>/<int:prefixlen>',
+api.add_url_rule('/networks', view_func=network_view, methods=['POST',])
+api.add_url_rule('/networks/<string:address>', view_func=network_view)
+api.add_url_rule('/networks/<string:address>/<int:prefixlen>',
                  view_func=network_view, methods=['GET', 'PUT', 'DELETE'])
 

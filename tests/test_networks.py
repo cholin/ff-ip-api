@@ -11,7 +11,7 @@ class TestNetworks(BaseCase):
     def test_create_new_network(self):
         self.assertEqual(1, Network.query.count())
         auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-        response = self.client.post('/ips', headers = [auth], data=dict(
+        response = self.client.post('/networks', headers = [auth], data=dict(
             address=NETWORK_ADDRESS,
             prefixlen=NETWORK_PREFIXLEN
             ))
@@ -25,7 +25,7 @@ class TestNetworks(BaseCase):
 
     def test_list_networks(self):
         auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-        response = self.client.get('/ips', headers = [auth])
+        response = self.client.get('/networks', headers = [auth])
         self.assert200(response)
 
         cidr = '{}/{}'.format(EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN)
@@ -35,7 +35,7 @@ class TestNetworks(BaseCase):
 
     def test_list_network(self):
         auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-        url = '/ips/{}/{}'.format(EXISTING_NETWORK_ADDRESS,
+        url = '/networks/{}/{}'.format(EXISTING_NETWORK_ADDRESS,
             EXISTING_NETWORK_PREFIXLEN)
         response = self.client.get(url, headers = [auth])
         self.assert200(response)
@@ -45,7 +45,7 @@ class TestNetworks(BaseCase):
 
     def test_delete_network(self):
         self.assertEqual(1, Network.query.count())
-        url = '/ips/{}/{}'.format(EXISTING_NETWORK_ADDRESS,
+        url = '/networks/{}/{}'.format(EXISTING_NETWORK_ADDRESS,
             EXISTING_NETWORK_PREFIXLEN)
         auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
         response = self.client.delete(url, headers = [auth])
