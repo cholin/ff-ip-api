@@ -8,9 +8,7 @@ Install
     $ virtualenv2 env
     $ . env/bin/activate
     $ pip install -r requirements.txt
-    $ python manage.py db init
-    $ python manage.py db migrate
-    $ python manage.py db upgrade
+    $ python manage.py initdb
 
 
 Dev Server (including dev smtp server for emails)
@@ -26,8 +24,13 @@ Tests
     $ nosetests
     ......
     ----------------------------------------------------------------------
-    Ran 6 tests in 0.389s
+    Ran 9 tests in 0.389s
 
+
+For database migrations
+    $ python manage.py db init
+    $ python manage.py db migrate
+    $ python manage.py db upgrade
 
 
 
@@ -38,7 +41,7 @@ Register new account
 
     $ curl --data "email=foo%40bar.de&password=foobar" http://localhost:5000/user
     {
-      "result": "success"
+      "message": "success"
     }
 
 
@@ -67,7 +70,7 @@ Delete an account
 
     $ curl -X DELETE -u foo@bar.de:foobar http://localhost:5000/user
     {
-      "result": "success"
+      "message": "success"
     }
 
 
@@ -78,7 +81,7 @@ Register new network
 
     $ curl -u foo@bar.de:foobar --data "address=104.0.0.0&prefixlen=28" http://localhost:5000/ips
     {
-      "result": "success"
+      "message": "success"
     }
 
 

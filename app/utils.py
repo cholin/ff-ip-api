@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import string
 
 from ipaddress import ip_network

@@ -1,14 +1,9 @@
-from flask import Flask, make_response, jsonify
-#from flask.ext.migrate import Migrate, MigrateCommand
+# -*- coding: utf-8 -*-
 
+from flask import Flask, make_response, jsonify
 from .api import api
 from .config import DefaultConfig
 from .exts import db, mail, migrate
-
-SALT = '<your super secret salt for passwords>'
-SECRET = '<your super secret for signatures>'
-
-#migrate = Migrate(app, db)
 
 def create_app(config=None):
     """Creates the Flask app."""

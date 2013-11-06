@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from app.models import Network
 from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS,\
     EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN

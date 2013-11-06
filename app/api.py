@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Blueprint, jsonify, abort, request, g, render_template
 from flask.views import MethodView
 from flask.ext.mail import Message

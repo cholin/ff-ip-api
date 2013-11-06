@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import g, url_for, current_app
 from ipaddress import ip_address
 from sqlalchemy.orm import validates, reconstructor

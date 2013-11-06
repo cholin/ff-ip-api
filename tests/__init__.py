@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import base64
 
 from flask.ext.testing import TestCase
@@ -12,7 +14,7 @@ EXISTING_NETWORK_PREFIXLEN=26
 
 class BaseCase(TestCase):
 
-    DEBUG = False
+    DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
 

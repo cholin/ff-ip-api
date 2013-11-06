@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 from app.exts import mail
 from app.models import User
