@@ -42,7 +42,7 @@ class User(db.Model):
         try:
             qry = User.query.filter_by(email = email, password_hash=hashed_pass)
             g.user = qry.one()
-            return True
+            return g.user.verified
         except:
             return False
 
