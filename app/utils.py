@@ -2,7 +2,7 @@
 
 import string
 
-from ipaddress import ip_network
+from ipaddress import ip_address, ip_network
 from hashlib import sha256
 from random import choice
 from functools import wraps
@@ -23,6 +23,10 @@ def hash_password(salt, password):
 
 def gen_network( address, prefixlen):
     return ip_network(u'{}/{}'.format(address, prefixlen))
+
+def get_max_prefixlen(address):
+    addr = ip_address(address)
+    return addr.max_prefixlen
 
 def gen_random_hash(length):
     digits = string.ascii_letters + string.digits

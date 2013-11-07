@@ -4,8 +4,10 @@ from app.models import Network
 from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS,\
     EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN
 
-NETWORK_ADDRESS='10.0.0.0'
+NETWORK_ADDRESS=u'10.0.0.0'
 NETWORK_PREFIXLEN=28
+
+ADDRESS=u'192.168.0.1'
 
 class TestNetworks(BaseCase):
     def test_create_new_network(self):
@@ -18,9 +20,24 @@ class TestNetworks(BaseCase):
         self.assert200(response)
         self.assertEqual(response.json, dict(message='success'))
 
-        network = Network.find(NETWORK_ADDRESS, NETWORK_PREFIXLEN).one()
+        network = Network.get(NETWORK_ADDRESS, NETWORK_PREFIXLEN).one()
         self.assertEqual(network.network_address, NETWORK_ADDRESS)
         self.assertEqual(network.prefixlen, NETWORK_PREFIXLEN)
+        self.assertEqual(2, Network.query.count())
+
+    def test_create_new_address(self):
+        self.assertEqual(1, Network.query.count())
+        auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        response = self.client.post('/networks', headers = [auth], data=dict(
+            address=ADDRESS
+            ))
+        self.assertEqual(response.json, "")
+        self.assert200(response)
+        self.assertEqual(response.json, dict(message='success'))
+
+        network = Network.get(ADDRESS).one()
+        self.assertEqual(network.network_address, ADDRESS)
+        self.assertEqual(network.prefixlen, 32)
         self.assertEqual(2, Network.query.count())
 
     def test_list_networks(self):

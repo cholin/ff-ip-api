@@ -5,7 +5,8 @@ from ipaddress import ip_address
 from sqlalchemy.orm import validates, reconstructor
 from validate_email import validate_email
 from itsdangerous import URLSafeTimedSerializer
-from utils import get_prefix_len, hash_password, gen_network, gen_random_hash
+from utils import get_prefix_len, hash_password, gen_network, gen_random_hash,\
+                  get_max_prefixlen
 from .exts import db
 
 class PasswordTooShortError(ValueError):
@@ -105,19 +106,30 @@ class Network(db.Model):
         self.network = gen_network(addr.exploded, prefixlen)
 
     @staticmethod
-    def overlaps_with(address, prefixlen = 32):
+    def overlaps_with(address, prefixlen = None):
+        if prefixlen is None:
+            prefixlen = get_max_prefixlen(address)
         net = gen_network(address, prefixlen)
         addr = int(net.network_address)
         num_addr = net.num_addresses
         return Network.query.filter(Network.address_packed <= addr)\
-                            .filter(addr + num_addr <=\
-                                    Network.address_packed + Network.num_addresses)
+                            .filter(addr + num_addr <= Network.address_packed +\
+                                    Network.num_addresses)
 
     @staticmethod
-    def find(address, prefixlen):
+    def get(address, prefixlen = None):
+        if prefixlen is None:
+            return Network.overlaps_with(address)
         net = gen_network(address, prefixlen)
         return Network.query.filter_by(address_packed = int(net.network_address),
                                        num_addresses = net.num_addresses)
+
+    @staticmethod
+    def get_all(no_networks = False):
+        if no_networks:
+            return Network.query.filter(Network.num_addresses <= 0)
+
+        return Network.query.all()
 
     @property
     def cidr(self):
@@ -141,7 +153,33 @@ class Network(db.Model):
         self.network = gen_network(self.network_address, prefixlen)
         self.num_addresses = self.network.num_addresses
 
+    def _address_as_dict(self, compact = True):
+        ip = self.network.network_address
+
+        data =  {
+            'address' : ip.exploded,
+            'owner' : self.owner.email,
+            'url' : url_for('api.networks', address=ip.exploded, _external=True)
+
+        }
+
+        if compact:
+            return data
+
+        data.update({
+            'is_private': ip.is_private,
+            'is_multicast' : ip.is_multicast,
+            'is_unspecified': ip.is_unspecified,
+            'is_reserverd': ip.is_reserved,
+            'version' : ip.version
+        })
+
+        return data
+
     def as_dict(self, compact=True, exclude_owner=False):
+        if self.prefixlen == self.network.max_prefixlen:
+              return self._address_as_dict(compact)
+
         data = {
             'network'   : self.cidr,
         }

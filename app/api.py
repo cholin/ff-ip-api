@@ -6,7 +6,7 @@ from flask.ext.mail import Message
 from itsdangerous import BadTimeSignature
 from sqlalchemy.exc import IntegrityError
 from socket import error as socket_error
-from utils import gen_random_hash, requires_auth
+from utils import gen_random_hash, requires_auth, get_max_prefixlen
 from models import User, Network, PasswordTooShortError
 from .exts import db, mail
 
@@ -113,19 +113,22 @@ def user_verify(email, token):
 class NetworkAPI(MethodView):
     def get(self, address, prefixlen = None):
         if address is None and prefixlen is None:
-            networks = Network.query.all()
+            no_networks = request.args.get('no_networks', type=bool, default=False)
+            networks = Network.get_all(no_networks = no_networks)
             return jsonify(networks=map(lambda n: n.as_dict(), networks))
-        network = Network.overlaps_with(address).first_or_404()
+
+        network = Network.get(address).first_or_404()
         return jsonify(network=network.as_dict(compact=False))
 
     def post(self):
         address = request.form['address']
-        prefixlen = request.form['prefixlen']
+        prefixlen = request.form.get('prefixlen', type=int, default=
+                        get_max_prefixlen(address))
 
         try:
             qry = Network.overlaps_with(address, prefixlen)
-        except ValueError:
-            return jsonify( { 'error': 'invalid ip address' } ), 400
+        except ValueError as e:
+            return jsonify( { 'error': str(e) } ), 400
 
         if qry.count() > 0:
             return jsonify( { 'error': 'ip address conflict' } ), 400
@@ -137,20 +140,20 @@ class NetworkAPI(MethodView):
         return jsonify(message='success')
 
     def put(self, address, prefixlen):
-        network = Network.find(address, prefixlen).first_or_404()
+        network = Network.get(address, prefixlen).first_or_404()
 
         if 'address' in request.form:
             network.network_address = request.form['address']
 
         if 'prefixlen' in request.form:
-            network.prefixlen = request.form['prefixlen']
+            network.prefixlen = int(request.form['prefixlen'])
 
         db.session.commit()
 
         return jsonify(message='success')
 
     def delete(self, address, prefixlen):
-        network = Network.find(address, prefixlen).first_or_404()
+        network = Network.get(address, prefixlen).first_or_404()
         if network.owner != g.user:
             abort(401)
 
@@ -169,4 +172,3 @@ api.add_url_rule('/networks', view_func=network_view, methods=['POST',])
 api.add_url_rule('/networks/<string:address>', view_func=network_view)
 api.add_url_rule('/networks/<string:address>/<int:prefixlen>',
                  view_func=network_view, methods=['GET', 'PUT', 'DELETE'])
-
