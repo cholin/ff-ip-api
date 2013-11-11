@@ -127,7 +127,7 @@ class Network(db.Model):
     @staticmethod
     def get_all(no_networks = False):
         if no_networks:
-            return Network.query.filter(Network.num_addresses <= 0)
+            return Network.query.filter(Network.num_addresses == 1)
 
         return Network.query.all()
 

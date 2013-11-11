@@ -112,7 +112,7 @@ def user_verify(email, token):
 
 class NetworkAPI(MethodView):
     def get(self, address, prefixlen = None):
-        if address is None and prefixlen is None:
+        if address is None or prefixlen is None:
             no_networks = request.args.get('no_networks', type=bool, default=False)
             networks = Network.get_all(no_networks = no_networks)
             return jsonify(networks=map(lambda n: n.as_dict(), networks))
