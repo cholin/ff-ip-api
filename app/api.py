@@ -131,7 +131,9 @@ class NetworkAPI(MethodView):
             return jsonify( { 'error': str(e) } ), 400
 
         if qry.count() > 0:
-            return jsonify( { 'error': 'ip address conflict' } ), 400
+            conflicts = ','.join(map(lambda n: n.cidr, qry.all()))
+            msg = 'ip address conflict: {}'.format(conflicts)
+            return jsonify( { 'error':  msg} ), 400
 
         network = Network(address, prefixlen, g.user)
         db.session.add(network)

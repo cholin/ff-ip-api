@@ -7,7 +7,7 @@ from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS,\
 NETWORK_ADDRESS=u'10.0.0.0'
 NETWORK_PREFIXLEN=28
 
-ADDRESS=u'192.168.0.1'
+ADDRESS=u'172.16.0.1'
 
 class TestNetworks(BaseCase):
     def test_create_new_network(self):
