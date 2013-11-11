@@ -11,7 +11,7 @@ ADDRESS=u'172.16.0.1'
 
 class TestNetworks(BaseCase):
     def test_create_new_network(self):
-        self.assertEqual(1, Network.query.count())
+        self.assertEqual(2, Network.query.count())
         response = self.client.post('/networks', auth = AUTH, data=dict(
             address=NETWORK_ADDRESS,
             prefixlen=NETWORK_PREFIXLEN
@@ -22,7 +22,7 @@ class TestNetworks(BaseCase):
         network = Network.get(NETWORK_ADDRESS, NETWORK_PREFIXLEN).one()
         self.assertEqual(network.network_address, NETWORK_ADDRESS)
         self.assertEqual(network.prefixlen, NETWORK_PREFIXLEN)
-        self.assertEqual(2, Network.query.count())
+        self.assertEqual(3, Network.query.count())
 
     def test_create_existing_network_failure(self):
         response = self.client.post('/networks', auth = AUTH, data=dict(
@@ -34,7 +34,7 @@ class TestNetworks(BaseCase):
         self.assertEqual(response.json, dict(error=msg))
 
     def test_create_new_address(self):
-        self.assertEqual(1, Network.query.count())
+        self.assertEqual(2, Network.query.count())
         response = self.client.post('/networks', auth = AUTH, data=dict(
             address=ADDRESS
             ))
@@ -44,7 +44,7 @@ class TestNetworks(BaseCase):
         network = Network.get(ADDRESS).one()
         self.assertEqual(network.network_address, ADDRESS)
         self.assertEqual(network.prefixlen, 32)
-        self.assertEqual(2, Network.query.count())
+        self.assertEqual(3, Network.query.count())
 
     def test_list_networks(self):
         response = self.client.get('/networks', auth = AUTH)
@@ -65,10 +65,10 @@ class TestNetworks(BaseCase):
             response.json['network'])
 
     def test_delete_network(self):
-        self.assertEqual(1, Network.query.count())
+        self.assertEqual(2, Network.query.count())
         url = '/networks/{}/{}'.format(EXISTING_NETWORK_ADDRESS,
             EXISTING_NETWORK_PREFIXLEN)
         response = self.client.delete(url, auth = AUTH)
         self.assert200(response)
         self.assertEqual(response.json, dict(message='success'))
-        self.assertEqual(0, Network.query.count())
+        self.assertEqual(1, Network.query.count())

@@ -135,7 +135,7 @@ class NetworkAPI(MethodView):
             msg = 'ip address conflict: {}'.format(conflicts)
             return jsonify( { 'error':  msg} ), 400
 
-        network = Network(address, prefixlen, g.user)
+        network = Network(g.user, address, prefixlen)
         db.session.add(network)
         db.session.commit()
 

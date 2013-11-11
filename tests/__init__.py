@@ -13,6 +13,7 @@ EXISTING_USER_EMAIL = u'test@test.de'
 EXISTING_USER_PASS = u'test123'
 EXISTING_NETWORK_ADDRESS='192.168.0.0'
 EXISTING_NETWORK_PREFIXLEN=26
+EXISTING_SINGLE_ADDRESS='192.168.0.64'
 AUTH = (EXISTING_USER_EMAIL, EXISTING_USER_PASS)
 
 
@@ -63,10 +64,12 @@ class BaseCase(TestCase):
 
         user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
         user.verified = True
-        network = Network(EXISTING_NETWORK_ADDRESS, EXISTING_NETWORK_PREFIXLEN,
-            user)
+        network = Network(user, EXISTING_NETWORK_ADDRESS,
+            EXISTING_NETWORK_PREFIXLEN)
+        address = Network(user, EXISTING_SINGLE_ADDRESS)
         db.session.add(user)
         db.session.add(network)
+        db.session.add(address)
         db.session.commit()
 
     def tearDown(self):

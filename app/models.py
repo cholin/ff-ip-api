@@ -93,7 +93,7 @@ class Network(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     pinged_at = db.Column(db.DateTime())
 
-    def __init__(self, address, prefixlen, owner):
+    def __init__(self, owner, address, prefixlen = 32):
         self.network = gen_network(address, prefixlen)
         self.address_packed = int(self.network.network_address)
         self.num_addresses = self.network.num_addresses
