@@ -3,7 +3,7 @@
 import urllib2
 from app.exts import mail
 from app.models import User
-from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS
+from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS, AUTH
 
 USER_MAIL = 'foo@bar.de'
 USER_PASS = 'foobar'
@@ -66,16 +66,14 @@ class TestUser(BaseCase):
             self.assertFalse(User.auth(EXISTING_USER_EMAIL, EXISTING_USER_PASS))
 
     def test_list_user(self):
-        auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-        response = self.client.get('/user', headers = [auth])
+        response = self.client.get('/user', auth = AUTH)
         self.assertDictContainsSubset(dict(email=EXISTING_USER_EMAIL),
             response.json['user'])
 
     def test_delete_user(self):
         self.assertEqual(1, User.query.count())
 
-        auth = self._gen_auth_headers(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
-        response = self.client.delete('/user', headers = [auth])
+        response = self.client.delete('/user', auth = AUTH)
 
         self.assert200(response)
         self.assertEqual(0, User.query.count())
