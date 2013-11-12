@@ -69,7 +69,7 @@ class User(db.Model):
 
     @property
     def verify_url(self):
-        return url_for('api.user_verify', email = self.email,
+        return url_for('.user_verify', email = self.email,
                   token = self.gen_signed_token(self.verify_namespace),
                   _external=True)
     @property
@@ -195,7 +195,7 @@ class Network(db.Model):
         data =  {
             'address' : ip.exploded,
             'owner' : self.owner.email,
-            'url' : url_for('api.networks', address=ip.exploded, _external=True)
+            'url' : url_for('.networks', address=ip.exploded, _external=True)
 
         }
 
@@ -224,8 +224,8 @@ class Network(db.Model):
             data['owner'] = self.owner.email
 
         if compact:
-            data['url'] = url_for('api.networks', address=self.network_address,
-                              prefixlen=self.prefixlen, _external=True)
+            data['url'] = url_for('.networks', address=self.network_address,
+                prefixlen=self.prefixlen, _external=True, _method='GET')
             return data
 
         data.update({

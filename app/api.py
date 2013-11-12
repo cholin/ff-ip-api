@@ -111,7 +111,7 @@ def user_verify(email, token):
 
 
 class NetworkAPI(MethodView):
-    def get(self, address, prefixlen = None):
+    def get(self, address, prefixlen):
         if address is None or prefixlen is None:
             no_networks = request.args.get('no_networks', type=bool, default=False)
             networks = Network.get_all(no_networks = no_networks)
@@ -172,12 +172,14 @@ class NetworkAPI(MethodView):
 
 
 user_view = UserAPI.as_view('user')
-api.add_url_rule('/user', view_func=user_view, methods=['GET', 'POST', 'PUT', 'DELETE'])
+api.add_url_rule('/user', view_func=user_view,
+    methods=['GET', 'POST', 'PUT', 'DELETE'])
 
 network_view = requires_auth(NetworkAPI.as_view('networks'))
 api.add_url_rule('/networks', defaults={'address': None, 'prefixlen': None},
-                         view_func=network_view, methods=['GET',])
-api.add_url_rule('/networks', view_func=network_view, methods=['POST',])
-api.add_url_rule('/networks/<string:address>', view_func=network_view)
+    view_func=network_view, methods=['GET'])
+api.add_url_rule('/networks', view_func=network_view, methods=['POST'])
+api.add_url_rule('/networks/<string:address>', defaults={'prefixlen' : None},
+    view_func=network_view, methods=['GET'])
 api.add_url_rule('/networks/<string:address>/<int:prefixlen>',
-                 view_func=network_view, methods=['GET', 'PUT', 'DELETE'])
+    view_func=network_view, methods=['GET', 'PUT', 'DELETE'])
