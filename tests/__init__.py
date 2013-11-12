@@ -13,7 +13,7 @@ EXISTING_USER_EMAIL = u'test@test.de'
 EXISTING_USER_PASS = u'test123'
 EXISTING_NETWORK_ADDRESS='192.168.0.0'
 EXISTING_NETWORK_PREFIXLEN=26
-EXISTING_SINGLE_ADDRESS='192.168.0.64'
+EXISTING_SINGLE_ADDRESS='192.168.0.65'
 AUTH = (EXISTING_USER_EMAIL, EXISTING_USER_PASS)
 
 
@@ -59,9 +59,20 @@ class BaseCase(TestCase):
         app.test_client_class = TestClient
         return app
 
+    def _extract_url(self, msg):
+        return re.search("(?P<url>https?://[^\s]+)", msg).group("url")
+
     def setUp(self):
         db.create_all()
 
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+
+class TestCase(BaseCase):
+    def setUp(self):
+        super(TestCase, self).setUp()
         user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
         user.verified = True
         network = Network(user, EXISTING_NETWORK_ADDRESS,
@@ -72,12 +83,11 @@ class BaseCase(TestCase):
         db.session.add(address)
         db.session.commit()
 
-    def tearDown(self):
-        db.drop_all()
 
-    def _extract_url(self, msg):
-        return re.search("(?P<url>https?://[^\s]+)", msg).group("url")
-
-    def _gen_auth_headers(self, email, password):
-        return ('Authorization', 'Basic ' + base64.b64encode('{}:{}'.format(
-                    email, password)))
+class EmptyTestCase(BaseCase):
+    def setUp(self):
+        super(EmptyTestCase, self).setUp()
+        user = User(EXISTING_USER_EMAIL, EXISTING_USER_PASS)
+        user.verified = True
+        db.session.add(user)
+        db.session.commit()

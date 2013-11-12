@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from flask import g, url_for, current_app
-from ipaddress import ip_address
+from ipaddress import ip_address, ip_network
 from sqlalchemy.orm import validates, reconstructor
 from validate_email import validate_email
 from itsdangerous import URLSafeTimedSerializer
 from utils import get_prefix_len, hash_password, gen_network, gen_random_hash,\
-                  get_max_prefixlen
+                  get_max_prefixlen, get_num_addresses
 from .exts import db
+
+VALID_NETWORKS = [
+    ip_network(u'10.0.0.0/8'),
+    ip_network(u'172.16.0.0/12'),
+    ip_network(u'192.168.0.0/16')
+]
 
 class PasswordTooShortError(ValueError):
     pass
@@ -105,6 +111,14 @@ class Network(db.Model):
         prefixlen = get_prefix_len(addr.max_prefixlen, self.num_addresses)
         self.network = gen_network(addr.exploded, prefixlen)
 
+    @validates('address_packed')
+    def validate_address_packed(self, key, address_packed):
+        msg =  'Only subnetworks of the following networks are allowed {}'.format(
+            ', '.join(map(lambda n: str(n), VALID_NETWORKS))
+        )
+        assert any(map(lambda n: self.network.overlaps(n), VALID_NETWORKS)), msg
+        return address_packed
+
     @staticmethod
     def overlaps_with(address, prefixlen = None):
         if prefixlen is None:
@@ -115,6 +129,26 @@ class Network(db.Model):
         return Network.query.filter(Network.address_packed <= addr)\
                             .filter(addr + num_addr <= Network.address_packed +\
                                     Network.num_addresses)
+
+    @staticmethod
+    def next_unused_network(prefixlen, ip_version=4):
+        addr = VALID_NETWORKS[0].network_address.exploded
+        if Network.overlaps_with(addr, prefixlen).count() == 0:
+            return addr
+
+        # TODO: use SQLAlchemy with a subquery
+        num_addresses = get_num_addresses(prefixlen)
+        qry = Network.query.order_by(Network.address_packed)
+        entries = qry.all()
+        pre = entries[0]
+        used =  pre.address_packed + pre.num_addresses
+        for current in entries[1:]:
+            used =  pre.address_packed + pre.num_addresses
+            if used + num_addresses < current.address_packed:
+                break
+            pre = current
+
+        return ip_address(used).exploded
 
     @staticmethod
     def get(address, prefixlen = None):

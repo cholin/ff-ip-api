@@ -18,11 +18,19 @@ def get_factors_by(factor, num):
 def get_prefix_len(max_prefixlen, num_addresses):
     return max_prefixlen-get_factors_by(2, num_addresses)
 
+def get_num_addresses(prefixlen, ip_version=4):
+    if ip_version == 4:
+      max_prefixlen = 32
+    else:
+      max_prefixlen = 128
+
+    return 2 ** (max_prefixlen - prefixlen)
+
 def hash_password(salt, password):
     return sha256('{}{}'.format(salt, password)).hexdigest()
 
 def gen_network( address, prefixlen):
-    return ip_network(u'{}/{}'.format(address, prefixlen))
+    return ip_network(u'{}/{}'.format(address, prefixlen), strict=False)
 
 def get_max_prefixlen(address):
     addr = ip_address(address)

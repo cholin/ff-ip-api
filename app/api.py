@@ -34,10 +34,10 @@ class UserAPI(MethodView):
             db.session.add(user)
             db.session.commit()
             return jsonify(message='success')
-        except AssertionError:
-            error = 'email validation error'
+        except AssertionError as e:
+            error = str(e)
         except IntegrityError:
-            error = 'email already exists'
+            error = 'Email already exists'
         except PasswordTooShortError:
             error = 'Password too short'
         except socket_error:
@@ -121,25 +121,32 @@ class NetworkAPI(MethodView):
         return jsonify(network=network.as_dict(compact=False))
 
     def post(self):
-        address = request.form['address']
-        prefixlen = request.form.get('prefixlen', type=int, default=
-                        get_max_prefixlen(address))
+        if 'address' in request.form:
+            address = request.form['address']
+            prefixlen = request.form.get('prefixlen', type=int, default=
+                            get_max_prefixlen(address))
+            try:
+                qry = Network.overlaps_with(address, prefixlen)
+            except ValueError as e:
+                return jsonify( { 'error': str(e) } ), 400
+
+            if qry.count() > 0:
+                conflicts = ','.join(map(lambda n: n.cidr, qry.all()))
+                msg = 'ip address conflict: {}'.format(conflicts)
+                return jsonify( { 'error':  msg} ), 400
+
+        else:
+            prefixlen = request.form.get('prefixlen', type=int, default=32)
+            address = Network.next_unused_network(prefixlen)
 
         try:
-            qry = Network.overlaps_with(address, prefixlen)
-        except ValueError as e:
-            return jsonify( { 'error': str(e) } ), 400
+            network = Network(g.user, address, prefixlen)
+            db.session.add(network)
+            db.session.commit()
+        except AssertionError as e:
+            return jsonify( { 'error' : str(e) }), 400
 
-        if qry.count() > 0:
-            conflicts = ','.join(map(lambda n: n.cidr, qry.all()))
-            msg = 'ip address conflict: {}'.format(conflicts)
-            return jsonify( { 'error':  msg} ), 400
-
-        network = Network(g.user, address, prefixlen)
-        db.session.add(network)
-        db.session.commit()
-
-        return jsonify(message='success')
+        return jsonify(message='success', network=network.as_dict(compact=False))
 
     def put(self, address, prefixlen):
         network = Network.get(address, prefixlen).first_or_404()

@@ -3,12 +3,12 @@
 import urllib2
 from app.exts import mail
 from app.models import User
-from tests import BaseCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS, AUTH
+from tests import TestCase, EXISTING_USER_EMAIL, EXISTING_USER_PASS, AUTH
 
 USER_MAIL = 'foo@bar.de'
 USER_PASS = 'foobar'
 
-class TestUser(BaseCase):
+class TestUser(TestCase):
     def test_unauthorized_access(self):
         response = self.client.get('/user')
         self.assertEqual(response.json, dict(message='Unauthorized access'))
@@ -45,7 +45,16 @@ class TestUser(BaseCase):
             )
         )
         self.assert400(response)
-        self.assertEqual(response.json, dict(message='email already exists'))
+        self.assertEqual(response.json, dict(message='Email already exists'))
+
+    def test_create_user_with_invalid_email(self):
+        response = self.client.post('/user', data=dict(
+            email='foo@foo,de',
+            password='yeayea'
+            )
+        )
+        self.assert400(response)
+        self.assertEqual(response.json, dict(message='Invalid email'))
 
     def test_reset_password(self):
         with mail.record_messages() as outbox:
