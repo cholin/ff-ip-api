@@ -125,28 +125,30 @@ class Network(db.Model):
             prefixlen = get_max_prefixlen(address)
         net = gen_network(address, prefixlen)
         addr = int(net.network_address)
-        num_addr = net.num_addresses
         return Network.query.filter(Network.address_packed <= addr)\
-                            .filter(addr + num_addr <= Network.address_packed +\
-                                    Network.num_addresses)
+            .filter(addr <= Network.address_packed + Network.num_addresses)
 
     @staticmethod
     def next_unused_network(prefixlen, ip_version=4):
-        addr = VALID_NETWORKS[0].network_address.exploded
-        if Network.overlaps_with(addr, prefixlen).count() == 0:
-            return addr
+        for net in VALID_NETWORKS:
+            addr = net.network_address.exploded
+            # TODO: use SQLAlchemy with a subquery
+            qry = Network.overlaps_with(addr, net.prefixlen)
 
-        # TODO: use SQLAlchemy with a subquery
-        num_addresses = get_num_addresses(prefixlen)
-        qry = Network.query.order_by(Network.address_packed)
-        entries = qry.all()
-        pre = entries[0]
-        used =  pre.address_packed + pre.num_addresses
-        for current in entries[1:]:
+            if qry.count() == 0:
+                return addr
+
+            entries = qry.all()
+            pre = entries[0]
             used =  pre.address_packed + pre.num_addresses
-            if used + num_addresses < current.address_packed:
-                break
-            pre = current
+            num_addresses = get_num_addresses(prefixlen)
+            for current in entries[1:]:
+                used =  pre.address_packed + pre.num_addresses
+                if used + num_addresses < current.address_packed:
+                    break
+                else:
+                    used =  current.address_packed + current.num_addresses
+                pre = current
 
         return ip_address(used).exploded
 

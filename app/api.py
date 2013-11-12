@@ -146,7 +146,7 @@ class NetworkAPI(MethodView):
         except AssertionError as e:
             return jsonify( { 'error' : str(e) }), 400
 
-        return jsonify(message='success', network=network.as_dict(compact=False))
+        return jsonify(message='success', network=network.as_dict())
 
     def put(self, address, prefixlen):
         network = Network.get(address, prefixlen).first_or_404()
