@@ -78,12 +78,24 @@ Delete an account
 Networks
 --------
 
-Register new network
+Register new network by address and prefixlen
 
     $ curl -u foo@bar.de:foobar --data "address=104.0.0.0&prefixlen=28" http://localhost:5000/networks
     {
       "message": "success"
     }
+
+
+If you don't care about address, then you can just use prefixlen as parameter
+
+    $ curl -u foo@bar.de:foobar --data "prefixlen=28" http://localhost:5000/networks
+    {
+      "message": "success",
+      "network": {
+        "network": "172.16.0.0/28",
+        "owner": "foo@bar.de",
+        "url": "http://localhost:5000/networks/172.16.0.0?prefixlen=28"
+      }
 
 
 Get information about a network
