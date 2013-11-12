@@ -60,6 +60,14 @@ class TestNetworks(TestCase):
         #network = Network.get(addr, prefixlen).one()
         #self.assertEqual(network.prefixlen, 30)
 
+    def test_create_conflicting_network(self):
+        self.assertEqual(2, Network.query.count())
+        response = self.client.post('/networks', auth = AUTH, data=dict(
+            address=EXISTING_NETWORK_ADDRESS,
+            prefixlen=EXISTING_NETWORK_PREFIXLEN
+            ))
+        self.assert400(response)
+
     def test_create_new_address_with_defaults(self):
         self.assertEqual(2, Network.query.count())
         response = self.client.post('/networks', auth = AUTH)

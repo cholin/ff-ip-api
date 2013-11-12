@@ -125,8 +125,9 @@ class Network(db.Model):
             prefixlen = get_max_prefixlen(address)
         net = gen_network(address, prefixlen)
         addr = int(net.network_address)
-        return Network.query.filter(Network.address_packed <= addr)\
-            .filter(addr <= Network.address_packed + Network.num_addresses)
+        return Network.query.filter(
+            Network.address_packed <= addr + net.num_addresses,
+            addr <= Network.address_packed + Network.num_addresses)
 
     @staticmethod
     def next_unused_network(prefixlen, ip_version=4):
